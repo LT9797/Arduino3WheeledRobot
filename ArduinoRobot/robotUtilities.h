@@ -30,6 +30,11 @@ namespace GCNRobot {
       int initialServoAngle_;
       int rpmMax_;
       Delays delays_;
+      bool halt_ = false;
+      int nHolesOdometryWheel_;
+
+      int pinSpeedMeasurementLeft;
+      int pinSpeedMeasurementRight;
 
       int GetSonarDistance();
       int GetSonarDistanceInDirectionOfGivenAngle(const int turningAngle);
@@ -40,14 +45,16 @@ namespace GCNRobot {
 
       Robot(int servoPin, int servoAngle, int sonarTrigPin, int sonarEchoPin, int sonarMaxDistance,
         int motor1Num, int motor2Num, int motor1PWMRate, int motor2PWMRate, int distanceFromObstaclesMin,
-        Delays delays, int rpmMax);
+        Delays delays, int rpmMax, bool halt, int speedMeasLeftPin, int speedMeasRightPin, int nHolesOdometryWheel);
       void MoveOneStepBasic();
   };
 
 
   Robot::Robot(int servoPin, int servoAngle, int sonarTrigPin, int sonarEchoPin, int sonarMaxDistance, 
       int motor1Num, int motor2Num, int motor1PWMRate, int motor2PWMRate, int distanceFromObstaclesMin,
-      Delays delays, int rpmMax) {
+      Delays delays, int rpmMax, bool halt, int speedMeasLeftPin, int speedMeasRightPin,
+      int nHolesOdometryWheel) {
+
     currentDirection_ = RELEASE;
     sonar_ = new NewPing(sonarTrigPin, sonarEchoPin, sonarMaxDistance);
     servo_.attach(servoPin);
@@ -58,6 +65,15 @@ namespace GCNRobot {
     distanceFromObstaclesMin_ = distanceFromObstaclesMin;
     delays_ = delays;
     rpmMax_ = rpmMax;
+    halt_ = halt;
+
+    pinSpeedMeasurementLeft = speedMeasLeftPin;
+    pinSpeedMeasurementRight = speedMeasRightPin;
+    pinMode(pinSpeedMeasurementLeft, INPUT);
+    pinMode(pinSpeedMeasurementRight, INPUT);
+
+    nHolesOdometryWheel_ = nHolesOdometryWheel;
+
   }
 
 
@@ -119,6 +135,19 @@ namespace GCNRobot {
    * then go in free direction.
   */
   void Robot::MoveOneStepBasic() {
+
+    int leftSpeedMeasurement = digitalRead(pinSpeedMeasurementLeft);
+    int rightSpeedMeasurement = digitalRead(pinSpeedMeasurementRight);
+
+    Serial.println(leftSpeedMeasurement);
+    if (halt_) {
+      return;
+    }
+    else {
+      MoveBasic(FORWARD);
+      return;
+    }
+
     int distance = GetSonarDistance();
     if (distance >= distanceFromObstaclesMin_) {
       MoveBasic(FORWARD); // proceed forward
