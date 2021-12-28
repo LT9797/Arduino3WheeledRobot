@@ -36,9 +36,9 @@ void setup() {
 
 #define DEBUG_STAY_STILL 1
 void loop() {
-  Serial.println("Loop is alive");
-  #if DEBUG_STAY_STILL
-  return;
-  #endif
+  Serial.println("Loop is alive"); // debug
+  if (DEBUG_STAY_STILL) {
+    return;
+  }
   robot->MoveOneStepBasic();
 }

@@ -115,6 +115,9 @@ namespace GCNRobot {
   }
 
 
+  /* Basic behaviour: go straight; if meet obstacle, retreat, stop, check left and right,
+   * then go in free direction.
+  */
   void Robot::MoveOneStepBasic() {
     int distance = GetSonarDistance();
     if (distance >= distanceFromObstaclesMin_) {
